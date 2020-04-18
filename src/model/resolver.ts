@@ -9,7 +9,8 @@ export default class Resolver {
   @memorize
   private get nodeFolder(): Promise<string> {
     if (!executable('npm')) return Promise.resolve('')
-    return runCommand('npm --loglevel silent root -g', {}, 3000).then(root => {
+    const env = { ...process.env, NO_UPDATE_NOTIFIER: '1' }
+    return runCommand('npm --loglevel silent root -g', { env }, 3000).then(root => {
       return root.trim()
     })
   }
