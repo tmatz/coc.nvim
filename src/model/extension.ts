@@ -87,14 +87,17 @@ export default class ExtensionManager {
         if (info['dist.tarball'] && info['dist.tarball'].indexOf('github.com') !== -1) {
           args = ['install']
         }
-        const child = spawn(npm, args, { cwd: tmpFolder })
+        const child = spawn(npm, args, {
+          cwd: tmpFolder,
+          env: { ...process.env, NO_UPDATE_NOTIFIER: '1' },
+        })
         child.stderr.setEncoding('utf8')
         child.on('error', reject)
         let err = ''
         child.stderr.on('data', data => {
           err += data
         })
-        child.on('exit', code => {
+        child.on('close', code => {
           if (code) {
             // tslint:disable-next-line: no-console
             console.error(`${npm} install exited with ${code}, messages:\n${err}`)
