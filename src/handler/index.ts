@@ -16,6 +16,7 @@ import { getSymbolKind } from '../util/convert'
 import { equals } from '../util/object'
 import { emptyRange, positionInRange, rangeInRange } from '../util/position'
 import { byteLength, isWord } from '../util/string'
+import pathRewrite from '../util/pathRewrite'
 import workspace from '../workspace'
 import CodeLensManager from './codelens'
 import Colors from './colors'
@@ -1154,7 +1155,7 @@ export default class Handler {
   }
 
   public async search(args: string[]): Promise<void> {
-    let cwd = await this.nvim.call('getcwd')
+    let cwd = pathRewrite(await this.nvim.call('getcwd'))
     let refactor = new Refactor()
     await refactor.createRefactorBuffer()
     if (!refactor.buffer) return

@@ -1,6 +1,21 @@
 let s:root = expand('<sfile>:h:h:h')
 let s:is_win = has('win32') || has('win64')
 let s:is_vim = !has('nvim')
+let s:cygpath = ''
+
+if has('win32unix')
+  let s:cygpath = exepath("cygpath")
+endif
+
+function! coc#util#nodepath(path)
+  if s:cygpath == ''
+    return a:path
+  else
+    return trim(system(s:cygpath." -m '".a:path."'"))
+  endif
+endfunction
+
+let s:nroot = coc#util#nodepath(s:root)
 
 let s:activate = ""
 let s:quit = ""
@@ -196,7 +211,7 @@ function! coc#util#job_command()
   endif
   let bundle = s:root.'/build/index.js'
   if filereadable(bundle) && !get(g:, 'coc_force_debug', 0)
-    return [node] + get(g:, 'coc_node_args', ['--no-warnings']) + [s:root.'/build/index.js']
+    return [node] + get(g:, 'coc_node_args', ['--no-warnings']) + [s:nroot.'/build/index.js']
   endif
   let file = s:root.'/lib/attach.js'
   if !filereadable(file)
@@ -207,7 +222,7 @@ function! coc#util#job_command()
     endif
     return
   endif
-  return [node] + get(g:, 'coc_node_args', ['--no-warnings']) + [s:root.'/bin/server.js']
+  return [node] + get(g:, 'coc_node_args', ['--no-warnings']) + [s:nroot.'/bin/server.js']
 endfunction
 
 function! coc#util#echo_hover(msg)

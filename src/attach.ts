@@ -5,6 +5,7 @@ import events from './events'
 import Plugin from './plugin'
 import semver from 'semver'
 import './util/extensions'
+import pathRewrite from './util/pathRewrite'
 import { URI } from 'vscode-uri'
 const logger = require('./util/logger')('attach')
 const isTest = process.env.NODE_ENV == 'test'
@@ -13,15 +14,10 @@ export default (opts: Attach, requestApi = true): Plugin => {
   const nvim: NeovimClient = attach(opts, log4js.getLogger('node-client'), requestApi)
   const timeout: number = process.env.COC_CHANNEL_TIMEOUT ? parseInt(process.env.COC_CHANNEL_TIMEOUT, 10) : 30
   // Overwriding the URI.file function in case of cygwin.
-  nvim.eval('has("win32unix")?get(g:,"coc_cygqwin_path_prefixes", v:null):v:null').then(prefixes => {
-    if (!prefixes) return
-    const old_uri = URI.file
-    URI.file = (path): URI => {
-      path = path.replace(/\\/g, '/')
-      Object.keys(prefixes).forEach(k => path = path.replace(new RegExp('^' + k, 'gi'), prefixes[k]))
-      return old_uri(path)
-    }
-  }).logError()
+  const old_uri = URI.file
+  URI.file = (path): URI => {
+    return old_uri(pathRewrite(path))
+  }
   const plugin = new Plugin(nvim)
   let clientReady = false
   let initialized = false

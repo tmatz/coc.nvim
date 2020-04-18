@@ -14,6 +14,7 @@ import snippetManager from './snippets/manager'
 import sources from './sources'
 import { Autocmd, OutputChannel, PatternType } from './types'
 import workspace from './workspace'
+import { pathRewriteInit } from './util/pathRewrite'
 const logger = require('./util/logger')('plugin')
 
 export default class Plugin extends EventEmitter {
@@ -174,6 +175,7 @@ export default class Plugin extends EventEmitter {
   public async init(): Promise<void> {
     let { nvim } = this
     try {
+      await pathRewriteInit(nvim)
       await extensions.init()
       await workspace.init()
       completion.init()

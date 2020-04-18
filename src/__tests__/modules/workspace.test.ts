@@ -11,6 +11,7 @@ import { TextDocumentContentProvider } from '../../provider'
 import { ConfigurationTarget } from '../../types'
 import { disposeAll } from '../../util'
 import { readFile } from '../../util/fs'
+import { pathRewrite, pathRewriteInit } from '../../util/pathRewrite'
 import workspace from '../../workspace'
 import helper, { createTmpFile } from '../helper'
 
@@ -479,7 +480,8 @@ describe('workspace methods', () => {
   })
 
   it('should rename file', async () => {
-    let cwd = await nvim.call('getcwd')
+    await pathRewriteInit(nvim);
+    let cwd = pathRewrite(await nvim.call('getcwd'))
     let file = path.join(cwd, 'a')
     fs.writeFileSync(file, 'foo', 'utf8')
     await helper.createDocument('a')

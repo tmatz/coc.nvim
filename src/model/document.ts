@@ -12,6 +12,7 @@ import { byteIndex, byteLength, byteSlice, characterIndex } from '../util/string
 import { Chars } from './chars'
 import { group, distinct } from '../util/array'
 import { comparePosition } from '../util/position'
+import pathRewrite from '../util/pathRewrite'
 const logger = require('../util/logger')('model-document')
 
 export type LastChangeType = 'insert' | 'change' | 'delete'
@@ -621,8 +622,8 @@ export default class Document {
    */
   public async getcwd(): Promise<string> {
     let wid = await this.nvim.call('bufwinid', this.buffer.id)
-    if (wid == -1) return await this.nvim.call('getcwd')
-    return await this.nvim.call('getcwd', wid)
+    if (wid == -1) return pathRewrite(await this.nvim.call('getcwd'))
+    return pathRewrite(await this.nvim.call('getcwd', wid))
   }
 
   /**

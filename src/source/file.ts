@@ -8,6 +8,7 @@ import Source from '../model/source'
 import { CompleteOption, CompleteResult, ISource, VimCompleteItem } from '../types'
 import { statAsync } from '../util/fs'
 import { byteSlice } from '../util/string'
+import { pathRewrite } from '../util/pathRewrite'
 const logger = require('../util/logger')('source-file')
 const pathRe = /(?:\.{0,2}|~|\$HOME|([\w]+)|)\/(?:[\w.@()-]+\/)*(?:[\w.@()-])*$/
 
@@ -119,9 +120,9 @@ export default class File extends Source {
     } else if (/^\//.test(pathstr)) {
       root = /\/$/.test(pathstr) ? pathstr : path.dirname(pathstr)
     } else if (part) {
-      if (fs.existsSync(path.join(dirname, part))) {
+      if (fs.existsSync(path.join(dirname, part)) || fs.existsSync(path.join(pathRewrite(dirname), part))) {
         root = dirname
-      } else if (fs.existsSync(path.join(cwd, part))) {
+      } else if (fs.existsSync(path.join(pathRewrite(cwd), part))) {
         root = cwd
       }
     } else {

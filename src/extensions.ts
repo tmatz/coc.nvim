@@ -21,6 +21,7 @@ import { distinct } from './util/array'
 import './util/extensions'
 import { createExtension, ExtensionExport } from './util/factory'
 import { inDirectory, readdirAsync, readFile, realpathAsync, statAsync } from './util/fs'
+import pathRewrite from './util/pathRewrite'
 import Watchman from './watchman'
 import workspace from './workspace'
 
@@ -619,7 +620,7 @@ export class Extensions {
   }
 
   private async localExtensionStats(exclude: ExtensionInfo[]): Promise<ExtensionInfo[]> {
-    let runtimepath = await workspace.nvim.eval('&runtimepath') as string
+    let runtimepath = pathRewrite(await workspace.nvim.eval('&runtimepath') as string)
     let included = exclude.map(o => o.root)
     let names = exclude.map(o => o.id)
     let paths = runtimepath.split(',')
@@ -857,7 +858,7 @@ export class Extensions {
   }
 
   private async initializeRoot(): Promise<void> {
-    let root = this.root = await workspace.nvim.call('coc#util#extension_root')
+    let root = this.root = pathRewrite(await workspace.nvim.call('coc#util#extension_root'))
     if (!fs.existsSync(root)) {
       mkdirp.sync(root)
     }

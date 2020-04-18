@@ -31,6 +31,7 @@ import { score } from './util/match'
 import { getChangedFromEdits, comparePosition } from './util/position'
 import { byteIndex, byteLength } from './util/string'
 import { Mutex } from './util/mutex'
+import pathRewrite from './util/pathRewrite'
 import Watchman from './watchman'
 import rimraf from 'rimraf'
 import uuid = require('uuid/v1')
@@ -113,7 +114,14 @@ export class Workspace implements IWorkspace {
   public async init(): Promise<void> {
     let { nvim } = this
     this.statusLine = new StatusLine(nvim)
-    this._env = await nvim.call('coc#util#vim_info') as Env
+    const env = await nvim.call('coc#util#vim_info') as Env
+    const optional = <T>(v: T, f: (_: T) => T) => v ? f(v) : v
+    this._env = {
+      ...env,
+      extensionRoot: optional(env.extensionRoot, pathRewrite),
+      runtimepath: optional(env.runtimepath, v => v.split(',').map(pathRewrite).join(',')),
+      workspaceFolders: optional(env.workspaceFolders, v => v.map(pathRewrite)),
+    }
     this._insertMode = this._env.mode.startsWith('insert')
     let preferences = this.getConfiguration('coc.preferences')
     let maxFileSize = preferences.get<string>('maxFileSize', '10MB')
@@ -404,8 +412,7 @@ export class Workspace implements IWorkspace {
    */
   public async findUp(filename: string | string[]): Promise<string | null> {
     let { cwd } = this
-    let filepath = await this.nvim.call('expand', '%:p') as string
-    filepath = path.normalize(filepath)
+    let filepath = pathRewrite(await this.nvim.call('expand', '%:p'))
     let isFile = filepath && path.isAbsolute(filepath)
     if (isFile && !isParentFolder(cwd, filepath, true)) {
       // can't use cwd
@@ -1667,7 +1674,7 @@ augroup end`
   public async renameCurrent(): Promise<void> {
     let { nvim } = this
     let bufnr = await nvim.call('bufnr', '%')
-    let cwd = await nvim.call('getcwd')
+    let cwd = pathRewrite(await nvim.call('getcwd'))
     let doc = this.getDocument(bufnr)
     if (!doc || doc.buftype != '' || doc.schema != 'file') {
       nvim.errWriteLine('current buffer is not file.')
