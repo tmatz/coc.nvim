@@ -246,6 +246,9 @@ function! coc#util#jump(cmd, filepath, ...) abort
   let path = a:filepath
   if (has('win32unix'))
     let path = substitute(a:filepath, '\v\\', '/', 'g')
+    if s:cygpath != ''
+      let path = trim(system(s:cygpath." -u '".path."'"))
+    endif
   endif
   let file = fnamemodify(path, ":~:.")
   if a:cmd =~# '^tab'
