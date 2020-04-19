@@ -11,6 +11,29 @@ let s:warning_sign = get(g:, 'coc_status_warning_sign', has('mac') ? '⚠️ ' :
 let s:select_api = exists('*nvim_select_popupmenu_item')
 let s:callbacks = {}
 
+function! coc#get_cygqwin_path_prefixes()
+  if !has('win32unix')
+    return {}
+  endif
+  if !empty(g:coc_cygqwin_path_prefixes)
+    return g:coc_cygqwin_path_prefixes
+  endif
+  let prefixes = {}
+  let mount = exepath('mount')
+  if (mount != '')
+    let lines = split(system(mount), '[\r\n]\+')
+    for line in lines
+      let matched = matchlist(line, '^\(.*\) on \(.*\) type [^ ]\+ ([^)]*)$')
+      if len(matched) > 0
+        let win = matched[1]
+        let posix = matched[2]
+        let prefixes[posix] = win
+      endif
+    endfor
+  endif
+  return prefixes
+endfunction
+
 function! coc#expandable() abort
   return coc#rpc#request('snippetCheck', [1, 0])
 endfunction

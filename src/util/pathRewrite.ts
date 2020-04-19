@@ -4,23 +4,18 @@ type RewriteRules = {
   [prefix: string]: string
 }
 
-const DefaultPathPrefixes = { '/([A-Z])/': '$1:/' }
-
 let _pathRewrite: (path: string) => string | null = null
 
 export async function createPathRewrite(nvim: Neovim): Promise<(p: string) => string> {
-  let rawRules: RewriteRules = null;
-  if (await nvim.eval('has("win32unix")')) {
-    rawRules = await nvim.eval('get(g:, "coc_cygqwin_path_prefixes", v:null)') as RewriteRules
-    if (rawRules == null) {
-        rawRules = DefaultPathPrefixes
-    }
-  }
+  let rawRules = await nvim.call('coc#get_cygqwin_path_prefixes') as RewriteRules
   let rules: { regexp: RegExp; replace: string }[] = []
   if (rawRules && typeof rawRules === "object") {
-    rules = Object.keys(rawRules as RewriteRules)
-      .filter(k => k && rawRules[k])
-      .map(k => ({ regexp: new RegExp('^' + k, 'gi'), replace: rawRules[k] }))
+    const addDirSep = (p: string) => p.endsWith('/') ? p : p + '/'
+    rules = Object.entries(rawRules as RewriteRules)
+      .filter(kv => kv[0] && kv[1])
+      .map(kv => kv.map(addDirSep))
+      .sort((a, b) => b[0].length - a[0].length)
+      .map(([posix, win]) => ({ regexp: new RegExp('^' + posix, 'gi'), replace: win }))
   }
   if (rules && rules.length > 0) {
     const rewrite = (p: string) => rules.reduce((prev, { regexp, replace }) => prev.replace(regexp, replace), p)
