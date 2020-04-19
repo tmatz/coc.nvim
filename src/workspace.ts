@@ -413,6 +413,7 @@ export class Workspace implements IWorkspace {
   public async findUp(filename: string | string[]): Promise<string | null> {
     let { cwd } = this
     let filepath = pathRewrite(await this.nvim.call('expand', '%:p'))
+    filepath = path.normalize(filepath)
     let isFile = filepath && path.isAbsolute(filepath)
     if (isFile && !isParentFolder(cwd, filepath, true)) {
       // can't use cwd
