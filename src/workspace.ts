@@ -115,11 +115,11 @@ export class Workspace implements IWorkspace {
     let { nvim } = this
     this.statusLine = new StatusLine(nvim)
     const env = await nvim.call('coc#util#vim_info') as Env
-    const optional = <T>(v: T, f: (_: T) => T) => v ? f(v) : v
+    const optional = <T>(v: T, f: (v: T) => T) => v ? f(v) : v
     this._env = {
       ...env,
       extensionRoot: optional(env.extensionRoot, pathRewrite),
-      runtimepath: optional(env.runtimepath, v => v.split(',').map(pathRewrite).join(',')),
+      runtimepath: optional(env.runtimepath, pathRewrite),
       workspaceFolders: optional(env.workspaceFolders, v => v.map(pathRewrite)),
     }
     this._insertMode = this._env.mode.startsWith('insert')
