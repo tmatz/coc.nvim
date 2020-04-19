@@ -4,7 +4,7 @@ type RewriteRules = {
   [prefix: string]: string
 }
 
-const DefaultPathPrefixes = { '/([A-Z])/': '$1:' }
+const DefaultPathPrefixes = { '/([A-Z])/': '$1:/' }
 
 let _pathRewrite: (path: string) => string | null = null
 
